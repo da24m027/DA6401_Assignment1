@@ -1,7 +1,7 @@
 import numpy as np
 
 class Backpropagation:
-    def __init__(self, model, optimizer="sgd", learning_rate=0.01, momentum=0.9, beta=0.9, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    def __init__(self, model, optimizer="sgd", learning_rate=0.01, momentum=0.9, beta=0.9, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.0):
         """
         Initialize the backpropagation optimizer.
         :param model: NeuralNetwork model instance
@@ -12,6 +12,7 @@ class Backpropagation:
         :param beta1: First moment decay rate (Adam, Nadam)
         :param beta2: Second moment decay rate (Adam, Nadam)
         :param epsilon: Small value to prevent division by zero
+        :param weight_decay: L2 Regularisation
         """
         self.model = model
         self.optimizer = optimizer
@@ -21,6 +22,7 @@ class Backpropagation:
         self.beta1 = beta1
         self.beta2 = beta2
         self.epsilon = epsilon
+        self.weight_decay = weight_decay
         
         # Initialize velocity (for Momentum and Nesterov)
         self.velocities = [np.zeros_like(W) for W in model.weights]
@@ -29,7 +31,27 @@ class Backpropagation:
         self.m = [np.zeros_like(W) for W in model.weights]
         self.v = [np.zeros_like(W) for W in model.weights]
         self.t = 0  # Time step for Adam/Nadam
-
+    
+    def backward(self, y_true, y_pred):
+        """
+        Perform backward pass to compute gradients.
+        :param y_true: True labels
+        :param y_pred: Predicted output
+        :return: Gradients for each layer
+        """
+        gradients = []
+        delta = y_pred - y_true  # Assume MSE loss for simplicity
+        
+        for i in reversed(range(len(self.model.weights))):
+            grad_W = np.dot(self.model.a[i].T, delta) / y_true.shape[0]
+            grad_W += self.weight_decay * self.model.weights[i]  # Apply L2 regularization
+            gradients.insert(0, grad_W)
+            
+            if i > 0:
+                delta = np.dot(delta, self.model.weights[i].T) * (self.model.a[i] > 0)  # ReLU derivative
+        
+        return gradients
+    
     def update_weights(self, gradients):
         """
         Updates the model weights using the selected optimizer.
@@ -38,7 +60,7 @@ class Backpropagation:
         self.t += 1  # Increment time step for Adam/Nadam
 
         for i in range(len(self.model.weights)):
-            grad = gradients[i]
+            grad = gradients[i] + self.weight_decay * self.model.weights[i]  # Apply L2 regularization
 
             if self.optimizer == "sgd":
                 # Stochastic Gradient Descent (SGD)

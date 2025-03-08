@@ -40,7 +40,7 @@ class Backpropagation:
         :return: Gradients for each layer
         """
         gradients = []
-        delta = y_pred - y_true
+        delta = y_pred - y_true #Same for mse and cross entropy as softmax outputs is handled in feedforward
         
         for i in reversed(range(len(self.model.weights))):
             grad_W = np.dot(self.model.a[i].T, delta) / y_true.shape[0]

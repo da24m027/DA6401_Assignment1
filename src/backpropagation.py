@@ -48,7 +48,13 @@ class Backpropagation:
             gradients.insert(0, grad_W)
             
             if i > 0:
-                delta = np.dot(delta, self.model.weights[i].T) * (self.model.a[i] > 0)  # ReLU derivative
+                if self.model.activation == "ReLU":
+                    delta = np.dot(delta, self.model.weights[i].T) * (self.model.a[i] > 0)
+                elif self.model.activation == "sigmoid":
+                    delta = np.dot(delta, self.model.weights[i].T) * (self.model.a[i] * (1 - self.model.a[i]))
+                elif self.model.activation == "tanh":
+                    delta = np.dot(delta, self.model.weights[i].T) * (1 - self.model.a[i]**2)
+    
         
         return gradients
     

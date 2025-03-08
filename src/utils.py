@@ -26,3 +26,16 @@ def evaluate(model, X_test, y_test):
 
     accuracy = np.mean(y_pred_labels == y_true_labels)
     return accuracy
+
+def calculate_loss(y_true, y_pred, loss_type):
+  if loss_type == 'mse':
+    return np.mean(np.square(y_true - y_pred))
+  elif loss_type == 'cross_entropy':
+    #Small epsilon to prevent log(0)
+    y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
+    return -np.mean(y_true * np.log(y_pred))
+
+def calculate_accuracy(y_true, y_pred):
+  predicted_classes = np.argmax(y_pred, axis=1)
+  true_classes = np.argmax(y_true, axis=1)
+  return np.mean(predicted_classes == true_classes)

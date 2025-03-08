@@ -40,7 +40,7 @@ class Backpropagation:
         :return: Gradients for each layer
         """
         gradients = []
-        delta = y_pred - y_true  # Assume MSE loss for simplicity
+        delta = y_pred - y_true
         
         for i in reversed(range(len(self.model.weights))):
             grad_W = np.dot(self.model.a[i].T, delta) / y_true.shape[0]
